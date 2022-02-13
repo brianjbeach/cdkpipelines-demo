@@ -1,6 +1,7 @@
 import * as apigw from '@aws-cdk/aws-apigateway';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { CfnOutput, Construct, Stack, StackProps } from '@aws-cdk/core';
+import { LambdaDeploymentGroup, LambdaDeploymentConfig } from '@aws-cdk/aws-codedeploy';
 import * as path from 'path';
 
 /**
@@ -32,6 +33,12 @@ export class CdkpipelinesDemoStack extends Stack {
       description: 'Endpoint for a simple Lambda-powered web service',
       handler: alias,
     });
+    
+    new LambdaDeploymentGroup(this, 'canaryDeployment', {
+      alias: alias,
+      deploymentConfig: LambdaDeploymentConfig.CANARY_10PERCENT_5MINUTES,
+      //alarms: [failureAlarm],
+    })
 
     this.urlOutput = new CfnOutput(this, 'Url', {
       value: gw.url,
