@@ -1,5 +1,5 @@
 import { Construct, SecretValue, Stack, StackProps } from '@aws-cdk/core';
-import { CodePipeline, CodePipelineSource, ShellStep, ShellScriptAction, ManualApprovalStep, StackSteps} from "@aws-cdk/pipelines";
+import { CodePipeline, CodePipelineSource, ShellStep, ShellScriptAction, ManualApprovalStep, StackSteps, ConfirmPermissionsBroadening} from "@aws-cdk/pipelines";
 import { CdkpipelinesDemoStage } from './cdkpipelines-demo-stage';
 
 /**
@@ -57,6 +57,9 @@ export class CdkpipelinesDemoPipelineStack extends Stack {
     });
     
     const prodStage = pipeline.addStage(prod,{
+        pre: [
+            new ConfirmPermissionsBroadening('Broadening Permission Check', { stage: prod })
+        ],
         stackSteps: [{
             stack: prod.service,
             
