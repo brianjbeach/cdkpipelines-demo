@@ -56,19 +56,15 @@ export class CdkpipelinesDemoPipelineStack extends Stack {
         env: { account: '968520978119', region: 'us-west-2' }
     });
     
-    const stackSteps: StackSteps = {
-        stack: this,
-        
-        // the properties below are optional
-        changeSet: [
-            new ManualApprovalStep('PromoteToProd'),
-        ]
-    };
-    
     const prodStage = pipeline.addStage(prod,{
-        stackSteps: [
-            stackSteps
-        ]
+        stackSteps: [{
+            stack: prod.service,
+            
+            // the properties below are optional
+            changeSet: [
+                new ManualApprovalStep('PromoteToProd'),
+            ]
+        }]
     });
     
   }

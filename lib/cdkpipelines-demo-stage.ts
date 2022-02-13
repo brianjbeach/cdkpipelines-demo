@@ -6,13 +6,14 @@ import { CdkpipelinesDemoStack } from './cdkpipelines-demo-stack';
  */
 export class CdkpipelinesDemoStage extends Stage {
   public readonly urlOutput: CfnOutput;
+  public readonly service: CdkpipelinesDemoStack;
   
   constructor(scope: Construct, id: string, props?: StageProps) {
     super(scope, id, props);
 
-    const service = new CdkpipelinesDemoStack(this, 'WebService');
+    this.service = new CdkpipelinesDemoStack(this, 'WebService');
     
     // Expose CdkpipelinesDemoStack's output one level higher
-    this.urlOutput = service.urlOutput;
+    this.urlOutput = this.service.urlOutput;
   }
 }
