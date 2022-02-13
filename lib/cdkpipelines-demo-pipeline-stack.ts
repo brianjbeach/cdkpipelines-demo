@@ -35,6 +35,9 @@ export class CdkpipelinesDemoPipelineStack extends Stack {
     });
     
     const preprodStage = pipeline.addStage(preprod, {
+        pre: [
+            new ConfirmPermissionsBroadening('Broadening Permission Check', { stage: preprod })
+        ],
         post: [
             new ShellStep('TestService', {
                 commands: [
@@ -57,15 +60,13 @@ export class CdkpipelinesDemoPipelineStack extends Stack {
     });
     
     const prodStage = pipeline.addStage(prod,{
-        pre: [
-            new ConfirmPermissionsBroadening('Broadening Permission Check', { stage: prod })
-        ],
+
         stackSteps: [{
             stack: prod.service,
-            
-            // the properties below are optional
             changeSet: [
-                new ManualApprovalStep('PromoteToProd'),
+                new ManualApprovalStep('PromoteToProd', { 
+                    comment: "Do you want to promote this build to production?"
+                }),
             ]
         }]
     });
