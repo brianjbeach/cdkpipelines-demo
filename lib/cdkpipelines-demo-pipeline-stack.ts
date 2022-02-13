@@ -1,5 +1,5 @@
 import { Construct, SecretValue, Stack, StackProps } from '@aws-cdk/core';
-import { CodePipeline, CodePipelineSource, ShellStep, ShellScriptAction, ManualApprovalStep} from "@aws-cdk/pipelines";
+import { CodePipeline, CodePipelineSource, ShellStep, ShellScriptAction, ManualApprovalStep, StackSteps} from "@aws-cdk/pipelines";
 import { CdkpipelinesDemoStage } from './cdkpipelines-demo-stage';
 
 /**
@@ -56,9 +56,18 @@ export class CdkpipelinesDemoPipelineStack extends Stack {
         env: { account: '968520978119', region: 'us-west-2' }
     });
     
+    const stackSteps: StackSteps = {
+        stack: this,
+        
+        // the properties below are optional
+        changeSet: [
+            new ManualApprovalStep('PromoteToProd'),
+        ]
+    };
+    
     const prodStage = pipeline.addStage(prod,{
-        pre: [
-             new ManualApprovalStep('PromoteToProd'),
+        stackSteps: [
+            stackSteps
         ]
     });
     
