@@ -21,11 +21,16 @@ export class CdkpipelinesDemoStack extends Stack {
       handler: 'handler.handler',
       code: lambda.Code.fromAsset(path.resolve(__dirname, 'lambda')),
     });
+    
+    const alias = new lambda.Alias(this, 'apiHandlerStage', {
+      aliasName: 'alias',
+      version: handler.currentVersion,
+    })
 
     // An API Gateway to make the Lambda web-accessible
     const gw = new apigw.LambdaRestApi(this, 'Gateway', {
       description: 'Endpoint for a simple Lambda-powered web service',
-      handler,
+      handler: alias,
     });
 
     this.urlOutput = new CfnOutput(this, 'Url', {
