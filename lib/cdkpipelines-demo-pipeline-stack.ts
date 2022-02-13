@@ -1,5 +1,5 @@
 import { Construct, SecretValue, Stack, StackProps } from '@aws-cdk/core';
-import { CodePipeline, CodePipelineSource, ShellStep, ShellScriptAction, ManualApprovalStep, StackSteps, ConfirmPermissionsBroadening} from "@aws-cdk/pipelines";
+import { CodePipeline, CodePipelineSource, ShellStep, ShellScriptAction, ManualApprovalStep, StackSteps, ConfirmPermissionsBroadening, CodeBuildStep} from "@aws-cdk/pipelines";
 import { CdkpipelinesDemoStage } from './cdkpipelines-demo-stage';
 
 /**
@@ -29,14 +29,23 @@ export class CdkpipelinesDemoPipelineStack extends Stack {
          ],
        }),
     });
+    
+    pipeline.addWave('BuildWave', {
+        post: [
+            new CodeBuildStep('BuildSource', {
+                commands: ['echo Build and unit tests go here.', 'echo Maybe a docker build and push too.']
+        
+            })
+        ]
+    });
 
     const preprod = new CdkpipelinesDemoStage(this, 'PreProd', {
         env: { account: '968520978119', region: 'us-east-2' }
     });
     
-    const preprodStage = pipeline.addStage(preprod, {
+    pipeline.addStage(preprod, {
         pre: [
-            new ConfirmPermissionsBroadening('Broadening Permission Check', { stage: preprod })
+            new ConfirmPermissionsBroadening('PermissionCheck', { stage: preprod })
         ],
         post: [
             new ShellStep('TestService', {
@@ -59,8 +68,7 @@ export class CdkpipelinesDemoPipelineStack extends Stack {
         env: { account: '968520978119', region: 'us-west-2' }
     });
     
-    const prodStage = pipeline.addStage(prod,{
-
+    pipeline.addStage(prod,{
         stackSteps: [{
             stack: prod.service,
             changeSet: [
