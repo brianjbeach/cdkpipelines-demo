@@ -1,5 +1,5 @@
 import { Construct, SecretValue, Stack, StackProps } from '@aws-cdk/core';
-import { CodePipeline, CodePipelineSource, ShellStep, ShellScriptAction } from "@aws-cdk/pipelines";
+import { CodePipeline, CodePipelineSource, ShellStep, ShellScriptAction, ManualApprovalStep} from "@aws-cdk/pipelines";
 import { CdkpipelinesDemoStage } from './cdkpipelines-demo-stage';
 
 /**
@@ -31,29 +31,36 @@ export class CdkpipelinesDemoPipelineStack extends Stack {
     });
 
     const preprod = new CdkpipelinesDemoStage(this, 'PreProd', {
-    env: { account: '968520978119', region: 'us-east-2' }
+        env: { account: '968520978119', region: 'us-east-2' }
     });
     
     const preprodStage = pipeline.addStage(preprod, {
-    post: [
-      new ShellStep('TestService', {
-        commands: [
-          // Use 'curl' to GET the given URL and fail if it returns an error
-          'curl -Ssf $ENDPOINT_URL',
+        post: [
+            new ShellStep('TestService', {
+                commands: [
+                  // Use 'curl' to GET the given URL and fail if it returns an error
+                  'curl -Ssf $ENDPOINT_URL',
+                ],
+                envFromCfnOutputs: {
+                  // Get the stack Output from the Stage and make it available in
+                  // the shell script as $ENDPOINT_URL.
+                  ENDPOINT_URL: preprod.urlOutput,
+                },
+            }),
+        
         ],
-        envFromCfnOutputs: {
-          // Get the stack Output from the Stage and make it available in
-          // the shell script as $ENDPOINT_URL.
-          ENDPOINT_URL: preprod.urlOutput,
-        },
-      }),
-    
-    ],
     });
     
-    pipeline.addStage(new CdkpipelinesDemoStage(this, 'Prod', {
-      env: { account: '968520978119', region: 'us-west-2' }
-    }));
+    
+    const prod = new CdkpipelinesDemoStage(this, 'Prod', {
+        env: { account: '968520978119', region: 'us-west-2' }
+    });
+    
+    const prodStage = pipeline.addStage(prod,{
+        pre: [
+             new ManualApprovalStep('PromoteToProd'),
+        ]
+    });
     
   }
 }
