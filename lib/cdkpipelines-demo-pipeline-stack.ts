@@ -12,7 +12,10 @@ export class CdkpipelinesDemoPipelineStack extends Stack {
     const pipeline = new CodePipeline(this, 'Pipeline', {
       // The pipeline name
       pipelineName: 'MyServicePipeline',
-
+      
+      // Required for cross account access to S3
+      crossAccountKeys: true,
+      
        // How it will be built and synthesized
        synth: new ShellStep('Synth', {
          // Where the source can be found
@@ -27,9 +30,13 @@ export class CdkpipelinesDemoPipelineStack extends Stack {
        }),
     });
 
-    // This is where we add the application stages
     pipeline.addStage(new CdkpipelinesDemoStage(this, 'PreProd', {
       env: { account: '968520978119', region: 'us-east-2' }
     }));
+    
+    pipeline.addStage(new CdkpipelinesDemoStage(this, 'Prod', {
+      env: { account: '968520978119', region: 'us-west-2' }
+    }));
+    
   }
 }
